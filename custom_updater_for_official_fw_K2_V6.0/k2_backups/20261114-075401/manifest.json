@@ -1,0 +1,41 @@
+{
+  "created_utc": "2026-11-14T05:54:50.929618+00:00",
+  "directory": "/home/air/Downloads/K2_V6.0/k2_backups/20261114-075401",
+  "identity": {
+    "boot_strings": [
+      "Dec 26 2024",
+      "09:56:02",
+      "K2(C)WITRN"
+    ],
+    "info_sha256": "e39870e1e077ac60949c1062464c61ccd6e8e8d439b208065f9f2d46195d679f",
+    "confirmed_k2": true,
+    "current_version": "1.0",
+    "current_marker_hex": "feffffff"
+  },
+  "flash_start": "0x08000000",
+  "flash_end_exclusive": "0x080E3000",
+  "flash_size": 929792,
+  "flash_sha256": "1a555d61cd75146a7c3e00b188b754c1875f923f2b49f65076946d0e35c57df0",
+  "app_sha256": "a5ab8aa5f72ba87edcddf87e8c87f1ee3609cad836309f369d66235eb1d6ee60",
+  "bootloader_and_info_sha256": "2ffa90c85a5f120edc40e40d0a41c8dd2d5e40450e3386c83089b44480a99ef9",
+  "two_independent_reads_match": true,
+  "recovery_file": "/home/air/Downloads/K2_V6.0/k2_backups/20261114-075401/K2_RECOVERY_1.0.k2",
+  "recovery": {
+    "model": "K2",
+    "model_guid": "5a3f8522-366b-46cc-aacc-dbfbe2fee02a",
+    "version": "1.0",
+    "date": "2026-11-14",
+    "file_size": 752232,
+    "app_size": 752184,
+    "file_sha256": "eb723a3d9da94359db95aaf691de0c002d60ad4d9cbec9e53e6c4f797cbc7c44",
+    "app_sha256": "704388e661d9bd58fc2913124f61e5a2a8b0d0588cd4756ca41ef2ccd6631fa1",
+    "app_start": "0x08003800",
+    "app_end_exclusive": "0x080BB238",
+    "erase_sectors": 368,
+    "erase_end_exclusive": "0x080BB800",
+    "commit_address": "0x08004400",
+    "commit_value_hex": "feffffff"
+  },
+  "recovery_flash_hardware_validated": false,
+  "erase_or_write_commands_sent": false
+}

@@ -1,0 +1,8 @@
+# WITRN K2 USB Power Meter / Tester
+# Vendor ID: 0716, Product ID: 5060
+
+# Allow non-root users to read and write to the hidraw device
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"
+
+# Allow direct USB access via libusb
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"

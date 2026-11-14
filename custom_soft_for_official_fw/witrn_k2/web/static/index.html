@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WITRN K2 - Лабораторний аналізатор</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <h1>WITRN K2</h1>
+          <span class="subtitle">USB Power & Protocol Analyzer</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="device-badge" id="deviceBadge">
+          <span class="status-indicator offline" id="statusIndicator"></span>
+          <span class="device-label" id="deviceLabel">Пошук пристрою...</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="btn btn-secondary" id="btnModeToggle" title="Перемкнути між фізичним пристроєм та симулятором">
+          Режим: <strong id="modeName">USB HID</strong>
+        </button>
+        <button class="btn btn-secondary" id="btnReconnect" title="Перепідключити пристрій">
+          🔄 Оновити
+        </button>
+      </div>
+    </header>
+
+    <!-- Real-time Big Telemetry Readouts Grid -->
+    <section class="readouts-grid">
+      <!-- Voltage Card -->
+      <div class="metric-card card-voltage">
+        <div class="metric-header">
+          <span class="metric-title">НАПРУГА (VBUS)</span>
+          <span class="metric-unit">Вольт</span>
+        </div>
+        <div class="metric-value" id="valVoltage">0.0000</div>
+        <div class="metric-footer">
+          <span>Min: <b id="minVoltage">0.000</b> V</span>
+          <span>Max: <b id="maxVoltage">0.000</b> V</span>
+          <span>Vpp: <b id="vppVoltage">0.000</b> V</span>
+        </div>
+      </div>
+
+      <!-- Current Card -->
+      <div class="metric-card card-current">
+        <div class="metric-header">
+          <span class="metric-title">СТРУМ (IBUS)</span>
+          <span class="metric-unit">Ампер</span>
+        </div>
+        <div class="metric-value" id="valCurrent">0.0000</div>
+        <div class="metric-footer">
+          <span>Min: <b id="minCurrent">0.000</b> A</span>
+          <span>Max: <b id="maxCurrent">0.000</b> A</span>
+          <span>Ipp: <b id="ippCurrent">0.000</b> A</span>
+        </div>
+      </div>
+
+      <!-- Power Card -->
+      <div class="metric-card card-power">
+        <div class="metric-header">
+          <span class="metric-title">ПОТУЖНІСТЬ</span>
+          <span class="metric-unit">Ват</span>
+        </div>
+        <div class="metric-value" id="valPower">0.0000</div>
+        <div class="metric-footer">
+          <span>Min: <b id="minPower">0.000</b> W</span>
+          <span>Max: <b id="maxPower">0.000</b> W</span>
+        </div>
+      </div>
+
+      <!-- Resistance Card -->
+      <div class="metric-card card-resistance">
+        <div class="metric-header">
+          <span class="metric-title">ОПІР НАВАНТАЖЕННЯ</span>
+          <span class="metric-unit">Ом</span>
+        </div>
+        <div class="metric-value" id="valResistance">---</div>
+        <div class="metric-footer">
+          <span>D+: <b id="valDp">0.00</b> V</span>
+          <span>D-: <b id="valDn">0.00</b> V</span>
+        </div>
+      </div>
+
+      <!-- Energy & Capacity Card -->
+      <div class="metric-card card-energy">
+        <div class="metric-header">
+          <span class="metric-title">НАКОПИЧЕНА ЕНЕРГІЯ</span>
+          <span class="metric-unit">Апаратний лічильник</span>
+        </div>
+        <div class="dual-metric">
+          <div><small>Ємність:</small> <span id="valCapacity">0.0000</span> <small>Ah</small></div>
+          <div><small>Енергія:</small> <span id="valEnergy">0.0000</span> <small>Wh</small></div>
+        </div>
+        <div class="metric-footer">
+          <span>Час запису K2: <b id="valK2RecTime">0</b> с</span>
+          <span>Uptime: <b id="valK2Uptime">0</b> с</span>
+        </div>
+      </div>
+
+      <!-- Temperature Card -->
+      <div class="metric-card card-temp">
+        <div class="metric-header">
+          <span class="metric-title">ТЕМПЕРАТУРА</span>
+          <span class="metric-unit">°C</span>
+        </div>
+        <div class="dual-metric">
+          <div><small>Внутрішня:</small> <span id="valTempIn">--.-</span> <small>°C</small></div>
+          <div><small>Зовнішня:</small> <span id="valTempOut">--.-</span> <small>°C</small></div>
+        </div>
+        <div class="metric-footer">
+          <span>Група даних K2: <b id="valGroup">1</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recording & Live Control Toolbar -->
+    <section class="controls-toolbar">
+      <div class="toolbar-left">
+        <div class="rec-status-indicator" id="recBadge">
+          <span class="rec-dot"></span>
+          <span id="recStatusText">ГОТОВИЙ ДО ЗАПИСУ</span>
+        </div>
+        <div class="rec-info" id="recInfoBlock" style="display: none;">
+          <span>Час: <b id="recTimer">00:00:00</b></span>
+          <span>Точок: <b id="recPointCount">0</b></span>
+        </div>
+      </div>
+
+      <div class="toolbar-center">
+        <button class="btn btn-primary" id="btnRecordStart">🔴 Почати запис</button>
+        <button class="btn btn-warning" id="btnRecordPause" style="display: none;">⏸ Пауза</button>
+        <button class="btn btn-success" id="btnRecordResume" style="display: none;">▶ Продовжити</button>
+        <button class="btn btn-danger" id="btnRecordStop" style="display: none;">⏹ Зупинити</button>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="control-group">
+          <label for="sampleRateSelect">Частота запису:</label>
+          <select id="sampleRateSelect" class="form-select">
+            <option value="10">10 Гц (Стандарт)</option>
+            <option value="50">50 Гц (Висока)</option>
+            <option value="100">100 Гц (Максимум K2)</option>
+            <option value="1">1 Гц (Економія)</option>
+            <option value="0">Без обмеження</option>
+          </select>
+        </div>
+
+        <button class="btn btn-secondary" id="btnAutoStopModal">
+          ⚙ Автозупинка
+        </button>
+
+        <button class="btn btn-secondary" id="btnClearChart" title="Очистити поточний графік (Ctrl+Delete)">
+          🧹 Очистити
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Chart Section -->
+    <section class="chart-section">
+      <div class="chart-toolbar">
+        <div class="channel-toggles">
+          <label class="channel-check ch-voltage">
+            <input type="checkbox" id="chkVoltage" checked>
+            <span>Напруга (V)</span>
+          </label>
+          <label class="channel-check ch-current">
+            <input type="checkbox" id="chkCurrent" checked>
+            <span>Струм (A)</span>
+          </label>
+          <label class="channel-check ch-power">
+            <input type="checkbox" id="chkPower" checked>
+            <span>Потужність (W)</span>
+          </label>
+          <label class="channel-check ch-res">
+            <input type="checkbox" id="chkResistance">
+            <span>Опір (Ω)</span>
+          </label>
+          <label class="channel-check ch-dp">
+            <input type="checkbox" id="chkDpDn">
+            <span>D+ / D-</span>
+          </label>
+          <label class="channel-check ch-temp">
+            <input type="checkbox" id="chkTemp">
+            <span>Температура</span>
+          </label>
+        </div>
+
+        <div class="zoom-controls">
+          <span>Вікно:</span>
+          <button class="btn btn-sm" data-window="10">10с</button>
+          <button class="btn btn-sm active" data-window="30">30с</button>
+          <button class="btn btn-sm" data-window="60">1хв</button>
+          <button class="btn btn-sm" data-window="300">5хв</button>
+          <button class="btn btn-sm" data-window="0">Все</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="telemetryChart"></canvas>
+        <div class="chart-hover-info" id="chartHoverInfo"></div>
+      </div>
+    </section>
+
+    <!-- Multi-tab Analysis & Management Section -->
+    <section class="tabs-section">
+      <div class="tab-headers">
+        <button class="tab-btn active" data-tab="tab-stats">📊 Лабораторна статистика</button>
+        <button class="tab-btn" data-tab="tab-sessions">📁 Історія записів та експорт</button>
+        <button class="tab-btn" data-tab="tab-import">📥 Імпорт файлів WITRN</button>
+        <button class="tab-btn" data-tab="tab-info">ℹ️ Інформація про систему</button>
+      </div>
+
+      <!-- Tab 1: Live / Session Stats -->
+      <div class="tab-content active" id="tab-stats">
+        <div class="stats-grid">
+          <div class="stats-card">
+            <h3>Зведена таблиця вимірювань</h3>
+            <table class="table" id="statsTable">
+              <thead>
+                <tr>
+                  <th>Параметр</th>
+                  <th>Мінімум</th>
+                  <th>Максимум</th>
+                  <th>Середнє (зважене)</th>
+                  <th>Пульсації (Peak-to-Peak)</th>
+                </tr>
+              </thead>
+              <tbody id="statsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="stats-card">
+            <h3>Інтегрована ємність та енергія</h3>
+            <div class="energy-stats-box">
+              <div class="stat-row">
+                <span>Пряма ємність (Вхідна):</span>
+                <strong id="statMahForward">0.00 mAh</strong>
+              </div>
+              <div class="stat-row">
+                <span>Зворотна ємність (Вихідна):</span>
+                <strong id="statMahReverse">0.00 mAh</strong>
+              </div>
+              <div class="stat-row highlight">
+                <span>Чиста ємність (Net):</span>
+                <strong id="statMahNet">0.00 mAh</strong>
+              </div>
+              <hr>
+              <div class="stat-row">
+                <span>Пряма енергія (Вхідна):</span>
+                <strong id="statMwhForward">0.00 mWh</strong>
+              </div>
+              <div class="stat-row">
+                <span>Зворотна енергія (Вихідна):</span>
+                <strong id="statMwhReverse">0.00 mWh</strong>
+              </div>
+              <div class="stat-row highlight">
+                <span>Чиста енергія (Net):</span>
+                <strong id="statMwhNet">0.00 mWh</strong>
+              </div>
+              <hr>
+              <div class="stat-row">
+                <span>Ефективна тривалість:</span>
+                <strong id="statDuration">0.0 с</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Saved Sessions -->
+      <div class="tab-content" id="tab-sessions">
+        <div class="sessions-header">
+          <h3>Збережені сесії вимірювань (SQLite)</h3>
+          <button class="btn btn-secondary" id="btnRefreshSessions">🔄 Оновити список</button>
+        </div>
+        <table class="table" id="sessionsTable">
+          <thead>
+            <tr>
+              <th>Назва сесії / Файл</th>
+              <th>Дата та час</th>
+              <th>Кількість точок</th>
+              <th>Розмір</th>
+              <th>Дії</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 3: Import -->
+      <div class="tab-content" id="tab-import">
+        <div class="import-box">
+          <h3>Імпорт офіційного CSV файлу програми WITRN</h3>
+          <p>Завантажте файл <code>.csv</code> або <code>.sqlite</code>, записаний офіційною програмою або іншим ПЗ, для його аналізу та візуалізації на графіку.</p>
+          <div class="drop-zone" id="dropZone">
+            <span class="drop-icon">📂</span>
+            <p>Перетягніть CSV файл сюди або натисніть для вибору</p>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+          </div>
+          <div id="importStatus"></div>
+        </div>
+      </div>
+
+      <!-- Tab 4: System Info & Diagnostics -->
+      <div class="tab-content" id="tab-info">
+        <div class="info-card">
+          <h3>Діагностика підключення K2</h3>
+          <div id="systemDiagnostics">Завантаження...</div>
+          <hr>
+          <h4>Правила udev (для постійного доступу без root):</h4>
+          <pre><code>SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"</code></pre>
+          <p>Файл правил розташований у проекті: <code>setup_udev.sh</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal for Auto-Stop Settings -->
+    <div class="modal-overlay" id="autoStopModal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Параметри автоматичної зупинки запису</h3>
+          <button class="btn-close" id="btnCloseAutoStop">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">Зупиняє запис автоматично, наприклад, при завершенні заряджання акумулятора.</p>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="autoStopEnabled">
+              <span>Увімкнути автозупинку</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Умова спрацювання:</label>
+            <select id="autoStopKind" class="form-select">
+              <option value="current">Струм спадає нижче порогу</option>
+              <option value="power">Потужність спадає нижче порогу</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Порогове значення (<span id="autoStopUnit">A</span>):</label>
+            <input type="number" id="autoStopThreshold" class="form-input" value="0.05" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label>Тривалість перебування нижче порогу (секунди):</label>
+            <input type="number" id="autoStopDuration" class="form-input" value="10" step="1" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="btnSaveAutoStop">Зберегти</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
