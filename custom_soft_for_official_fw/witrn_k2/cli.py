@@ -5,9 +5,20 @@ file analysis, and web dashboard launching.
 """
 import argparse
 from datetime import datetime
+import os
 from pathlib import Path
 import sys
 import time
+
+# Cross-platform Windows console compatibility (ANSI color escape codes & UTF-8)
+if sys.platform == "win32":
+    os.system("")  # Enables Virtual Terminal Processing in Windows Console
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 from .core import (
     calculate_statistics,
@@ -39,11 +50,15 @@ def cmd_info(args):
     print(f"  Права на запис:    {'✓ ТАК' if dev.get('writable') else '❌ НІ'}")
 
     if not dev.get("readable") or not dev.get("writable"):
-        print("\n⚠️ УВАГА: Немає прав доступу до пристрою від звичайного користувача.")
-        print("   Щоб надати права, виконайте:")
-        print("     sudo ./setup_udev.sh")
-        print("   або одноразово:")
-        print(f"     sudo chmod 666 {dev.get('path')}")
+        print("\n⚠️ УВАГА: Немає прав доступу до пристрою.")
+        if sys.platform == "win32":
+            print("   На Windows переконайтеся, що тестер не зайнятий іншою програмою")
+            print("   (наприклад, оригінальним додатком WITRN). Закрийте інші програми та спробуйте знову.")
+        else:
+            print("   Щоб надати права, виконайте:")
+            print("     sudo ./setup_udev.sh")
+            print("   або одноразово:")
+            print(f"     sudo chmod 666 {dev.get('path')}")
         sys.exit(1)
     else:
         print("\n✓ Пристрій готовий до зчитування даних!")

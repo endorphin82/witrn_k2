@@ -29,4 +29,4 @@ echo "🚀 Запуск веб-сервера аналізатора на http:/
 echo "   Натисніть Ctrl+C для зупинки."
 echo ""
 
-exec .venv/bin/python -m witrn_k2.cli serve --host 127.0.0.1 --port 8000 --open-browser
+exec .venv/bin/python -m witrn_k2.cli serve --host 127.0.0.1 --port 8000 --open-browser "$@"

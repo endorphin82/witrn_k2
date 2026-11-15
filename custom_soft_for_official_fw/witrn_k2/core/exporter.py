@@ -52,6 +52,16 @@ def parse_elapsed_time(text: str) -> float:
     return total
 
 
+def open_ro_sqlite(db_path: Path) -> sqlite3.Connection:
+    """Safely open an SQLite database in read-only mode across all platforms (Linux/Windows/macOS)."""
+    path = Path(db_path).resolve()
+    try:
+        uri = f"{path.as_uri()}?mode=ro"
+        return sqlite3.connect(uri, uri=True)
+    except Exception:
+        return sqlite3.connect(str(path))
+
+
 def read_sqlite_samples(
     db_path: Path,
     start_time: Optional[float] = None,
@@ -59,7 +69,7 @@ def read_sqlite_samples(
     max_points: Optional[int] = None,
 ) -> Generator[Sample, None, None]:
     """Read samples from an SQLite recording file."""
-    conn = sqlite3.connect(f"file:{Path(db_path).resolve()}?mode=ro", uri=True)
+    conn = open_ro_sqlite(Path(db_path))
     conn.row_factory = sqlite3.Row
     try:
         query = "SELECT * FROM samples"

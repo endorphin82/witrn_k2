@@ -321,7 +321,9 @@
           <h3>Діагностика підключення K2</h3>
           <div id="systemDiagnostics">Завантаження...</div>
           <hr>
-          <h4>Правила udev (для постійного доступу без root):</h4>
+          <h4>Підключення в різних ОС:</h4>
+          <p><strong>🪟 Windows:</strong> Драйвери не потрібні (використовується системний HID-драйвер). Якщо пристрій не розпізнається, переконайтеся, що офіційну програму WITRN закрито (вона блокує порт пристрою для інших програм).</p>
+          <p><strong>🐧 Linux:</strong> Для доступу без прав root налаштуйте udev через <code>setup_udev.sh</code> або додайте правило:</p>
           <pre><code>SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0716", ATTRS{idProduct}=="5060", MODE="0666", TAG+="uaccess"</code></pre>
           <p>Файл правил розташований у проекті: <code>setup_udev.sh</code>.</p>

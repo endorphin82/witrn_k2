@@ -31,7 +31,7 @@ from ..core import (
     import_official_csv,
     open_transport,
 )
-from ..core.exporter import read_sqlite_samples
+from ..core.exporter import open_ro_sqlite, read_sqlite_samples
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("witrn_k2_web")
@@ -187,7 +187,12 @@ async def lifespan(app: FastAPI):
     yield
     shutdown_event.set()
     if background_task:
-        await background_task
+        try:
+            await asyncio.wait_for(background_task, timeout=2.0)
+        except (asyncio.TimeoutError, asyncio.CancelledError):
+            background_task.cancel()
+        except Exception:
+            pass
     recorder.stop()
     logger.info("WITRN K2 telemetry service stopped")
 
@@ -303,12 +308,14 @@ def list_sessions():
         meta = {}
         sample_count = 0
         try:
-            conn = sqlite3.connect(f"file:{f.resolve()}?mode=ro", uri=True)
-            for k, v in conn.execute("SELECT key, value FROM metadata"):
-                meta[k] = v
-            c = conn.execute("SELECT COUNT(*) FROM samples").fetchone()
-            sample_count = c[0] if c else 0
-            conn.close()
+            conn = open_ro_sqlite(f)
+            try:
+                for k, v in conn.execute("SELECT key, value FROM metadata"):
+                    meta[k] = v
+                c = conn.execute("SELECT COUNT(*) FROM samples").fetchone()
+                sample_count = c[0] if c else 0
+            finally:
+                conn.close()
         except Exception:
             pass
 
@@ -334,9 +341,11 @@ def get_session_details(session_id: str, max_points: Optional[int] = Query(2000)
     stats = calculate_statistics(samples)
 
     # Read metadata
-    conn = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True)
-    meta = {k: v for k, v in conn.execute("SELECT key, value FROM metadata")}
-    conn.close()
+    conn = open_ro_sqlite(db_path)
+    try:
+        meta = {k: v for k, v in conn.execute("SELECT key, value FROM metadata")}
+    finally:
+        conn.close()
 
     return {
         "session_id": session_id,
@@ -390,7 +399,8 @@ def delete_session(session_id: str):
 @app.post("/api/import")
 async def import_csv(file: UploadFile = File(...)):
     """Upload and import an official WITRN CSV file into a new SQLite session."""
-    temp_path = STORAGE_DIR / f"temp_import_{file.filename}"
+    raw_name = Path(file.filename or "import.csv").name
+    temp_path = STORAGE_DIR / f"temp_import_{raw_name}"
     try:
         content = await file.read()
         with open(temp_path, "wb") as f:
@@ -400,10 +410,10 @@ async def import_csv(file: UploadFile = File(...)):
         if not samples:
             raise HTTPException(status_code=400, detail="No valid samples found in CSV")
 
-        session_id = f"imported_{Path(file.filename).stem}"
+        session_id = f"imported_{Path(raw_name).stem}"
         new_db = STORAGE_DIR / f"{session_id}.sqlite"
         from ..core.recorder import RecordingSession
-        sess = RecordingSession(new_db, rate=0, metadata={"source": file.filename, "imported": "1"})
+        sess = RecordingSession(new_db, rate=0, metadata={"source": raw_name, "imported": "1"})
         for s in samples:
             sess.append(s)
         sess.close(completed=True)

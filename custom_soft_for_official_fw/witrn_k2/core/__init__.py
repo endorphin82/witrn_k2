@@ -12,7 +12,7 @@ from .analytics import (
     moving_average,
     build_report,
 )
-from .exporter import export_official_csv, export_standard_csv, export_json, import_official_csv
+from .exporter import export_official_csv, export_standard_csv, export_json, import_official_csv, open_ro_sqlite
 from .svgcharts import export_samples_svg
 
 __all__ = [
@@ -44,4 +44,5 @@ __all__ = [
     "export_standard_csv",
     "export_json",
     "import_official_csv",
+    "open_ro_sqlite",
 ]
