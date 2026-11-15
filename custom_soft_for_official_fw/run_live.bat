@@ -1,39 +1,24 @@
 @echo off
-chcp 65001 >nul
-title WITRN K2 Live Monitor
-setlocal enabledelayedexpansion
+setlocal
+cd /d "%~dp0"
 
-echo ======================================================
-echo  WITRN K2 - Однорядковий живий монітор
-echo ======================================================
-echo.
+set "PY="
+where py >nul 2>&1 && set "PY=py"
+if "%PY%"=="" where python >nul 2>&1 && set "PY=python"
 
-set "PYTHON_EXE="
-where py >nul 2>&1
-if !ERRORLEVEL! EQU 0 (
-    set "PYTHON_EXE=py"
-) else (
-    where python >nul 2>&1
-    if !ERRORLEVEL! EQU 0 (
-        set "PYTHON_EXE=python"
-    )
-)
-
-if "%PYTHON_EXE%"=="" (
-    echo [ПОМИЛКА] Python не знайдено в PATH.
+if "%PY%"=="" (
+    echo [ERROR] Python not found in PATH.
     pause
     exit /b 1
 )
 
 if not exist ".venv\Scripts\python.exe" (
-    echo Створення віртуального середовища...
-    %PYTHON_EXE% -m venv .venv
+    echo Creating virtual environment...
+    %PY% -m venv .venv
     .venv\Scripts\python.exe -m pip install --upgrade pip
     .venv\Scripts\pip.exe install -r requirements.txt
 )
 
-echo ⚡ Запуск живого моніторингу (натисніть Ctrl+C для зупинки)...
+echo Starting WITRN K2 Live Monitor (Ctrl+C to stop)...
 .venv\Scripts\python.exe -m witrn_k2.cli live %*
-if !ERRORLEVEL! NEQ 0 (
-    pause
-)
+if errorlevel 1 pause

@@ -276,6 +276,87 @@ def cmd_serve(args):
     uvicorn.run("witrn_k2.web.app:app", host=args.host, port=args.port, log_level="info")
 
 
+def cmd_menu(args):
+    """Interactive launcher menu."""
+    while True:
+        print("\n" + "=" * 62)
+        print("⚡ WITRN K2 USB Tester — Меню швидкого вибору")
+        print("=" * 62)
+        print(" 1) 🌐 Веб-інтерфейс (Web Dashboard: http://127.0.0.1:8000)")
+        print(" 2) 🖥️  Графічний додаток (PyQt6 Desktop GUI)")
+        print(" 3) 📊 Термінальний дашборд (Rich TUI)")
+        print(" 4) 🎮 Термінальний дашборд (Режим СИМУЛЯТОРА)")
+        print(" 5) ⚡ Компактний однорядковий монітор (Live)")
+        print(" 6) 🔋 Запис заряджання акумулятора (Автозупинка при <50мА)")
+        print(" 7) 🚀 Швидкісний запис (100 Гц)")
+        print(" 8) 🔍 Діагностика підключення тестера (info)")
+        print(" 9) 📈 Аналіз останнього збереженого запису")
+        print(" 0) ❌ Вихід")
+        print("=" * 62)
+        try:
+            choice = input("Оберіть дію [0-9]: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nВихід.")
+            break
+
+        if choice == "1":
+            from argparse import Namespace
+            cmd_serve(Namespace(host="127.0.0.1", port=8000, open_browser=True))
+        elif choice == "2":
+            from argparse import Namespace
+            cmd_gui(Namespace())
+        elif choice == "3":
+            from argparse import Namespace
+            cmd_dash(Namespace(simulator=False, record=False, out="recordings/dash.sqlite", rate=10, auto_stop=False))
+        elif choice == "4":
+            from argparse import Namespace
+            cmd_dash(Namespace(simulator=True, record=False, out="recordings/dash.sqlite", rate=10, auto_stop=False))
+        elif choice == "5":
+            from argparse import Namespace
+            cmd_live(Namespace(simulator=False))
+        elif choice == "6":
+            from argparse import Namespace
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            Path("recordings").mkdir(parents=True, exist_ok=True)
+            out_file = f"recordings/charge_{ts}.sqlite"
+            cmd_record(Namespace(
+                out=out_file, duration=None, rate=10, format="witrn_csv",
+                auto_stop=True, auto_kind="current", threshold=0.05,
+                trigger_duration=10.0, simulator=False
+            ))
+        elif choice == "7":
+            from argparse import Namespace
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            Path("recordings").mkdir(parents=True, exist_ok=True)
+            out_file = f"recordings/highspeed_100hz_{ts}.sqlite"
+            cmd_record(Namespace(
+                out=out_file, duration=None, rate=100, format="sqlite",
+                auto_stop=False, auto_kind="current", threshold=0.05,
+                trigger_duration=10.0, simulator=False
+            ))
+        elif choice == "8":
+            from argparse import Namespace
+            try:
+                cmd_info(Namespace())
+            except SystemExit:
+                pass
+            input("\nНатисніть Enter для повернення в меню...")
+        elif choice == "9":
+            rec_dir = Path("recordings")
+            files = sorted(rec_dir.glob("*.sqlite"), key=lambda p: p.stat().st_mtime, reverse=True) if rec_dir.exists() else []
+            if files:
+                from argparse import Namespace
+                cmd_analyze(Namespace(file=str(files[0])))
+            else:
+                print("У папці recordings/ ще немає збережених сесій.")
+            input("\nНатисніть Enter для повернення в меню...")
+        elif choice in ("0", "q", "Q"):
+            print("До побачення!")
+            break
+        else:
+            print("Невірний вибір. Спробуйте ще раз.")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="WITRN K2 USB Tester Tool & Analyzer",
@@ -332,6 +413,10 @@ def main():
     p_srv.add_argument("--port", type=int, default=8000, help="Порт")
     p_srv.add_argument("--open-browser", action="store_true", default=True, help="Автоматично відкрити браузер")
     p_srv.set_defaults(func=cmd_serve)
+
+    # menu
+    p_menu = subparsers.add_parser("menu", help="Інтерактивне меню вибору режиму запуску")
+    p_menu.set_defaults(func=cmd_menu)
 
     args = parser.parse_args()
     args.func(args)

@@ -1,52 +1,26 @@
 @echo off
-chcp 65001 >nul
-title WITRN K2 100Hz Fast Recording
-setlocal enabledelayedexpansion
+setlocal
+cd /d "%~dp0"
 
-echo ======================================================
-echo  ⚡ WITRN K2 - Швидкісний запис (100 Гц)
-echo ======================================================
-echo.
+set "PY="
+where py >nul 2>&1 && set "PY=py"
+if "%PY%"=="" where python >nul 2>&1 && set "PY=python"
 
-set "PYTHON_EXE="
-where py >nul 2>&1
-if !ERRORLEVEL! EQU 0 (
-    set "PYTHON_EXE=py"
-) else (
-    where python >nul 2>&1
-    if !ERRORLEVEL! EQU 0 (
-        set "PYTHON_EXE=python"
-    )
-)
-
-if "%PYTHON_EXE%"=="" (
-    echo [ПОМИЛКА] Python не знайдено в PATH.
+if "%PY%"=="" (
+    echo [ERROR] Python not found in PATH.
     pause
     exit /b 1
 )
 
 if not exist ".venv\Scripts\python.exe" (
-    echo Створення віртуального середовища...
-    %PYTHON_EXE% -m venv .venv
+    echo Creating virtual environment...
+    %PY% -m venv .venv
     .venv\Scripts\python.exe -m pip install --upgrade pip
     .venv\Scripts\pip.exe install -r requirements.txt
 )
 
 if not exist "recordings" mkdir recordings
 
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set "dt=%%I"
-set "TIMESTAMP=%dt:~0,8%_%dt:~8,6%"
-if "%TIMESTAMP%"=="_" (
-    set "TIMESTAMP=%RANDOM%"
-)
-set "OUT_FILE=recordings\highspeed_100hz_%TIMESTAMP%.sqlite"
-
-echo Параметри:
-echo  - Вихідний файл:  %OUT_FILE%
-echo  - Частота:        100 Гц
-echo  - Зупинити запис: натисніть Ctrl+C
-echo.
-
-.venv\Scripts\python.exe -m witrn_k2.cli record -o "%OUT_FILE%" -r 100 --format sqlite %*
-echo.
-pause
+echo Running High-Speed 100 Hz Recording (Ctrl+C to stop)...
+.venv\Scripts\python.exe -c "import witrn_k2.cli, argparse, datetime, pathlib; ts = datetime.datetime.now().strftime('%%Y%%m%%d_%%H%%M%%S'); f = f'recordings/highspeed_100hz_{ts}.sqlite'; witrn_k2.cli.cmd_record(argparse.Namespace(out=f, duration=None, rate=100, format='sqlite', auto_stop=False, auto_kind='current', threshold=0.05, trigger_duration=10.0, simulator=False))" %*
+if errorlevel 1 pause
