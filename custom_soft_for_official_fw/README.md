@@ -1,214 +1,263 @@
-# ⚡ WITRN K2 - Програмне забезпечення для аналізу даних (Linux & Windows)
+# ⚡ WITRN K2 - Data Analysis Software (Linux & Windows)
 
-Повнофункціональний кросплатформний лабораторний комплекс для аналізу, моніторингу та логування показників USB-тестера **WITRN K2** (Vendor ID `0716`, Product ID `5060`) під керуванням **Linux** (Arch, Ubuntu/Debian, Fedora) та **Windows** (10/11).
+**English** | [Українська](README.uk.md)
 
-ПЗ розроблено на основі відкритих проектів реверс-інжинірингу протоколів WITRN ([`lliooly/WITRN-K2-REVERSE`](https://github.com/lliooly/WITRN-K2-REVERSE), [`lliooly/witrn-k2-mac`](https://github.com/lliooly/witrn-k2-mac) та напрацювань [`didim99/usbmeter-utils`](https://github.com/didim99/usbmeter-utils)).
+A full-featured cross-platform laboratory suite for analyzing, monitoring, and logging the metrics of the **WITRN K2** USB tester (Vendor ID `0716`, Product ID `5060`) under **Linux** (Arch, Ubuntu/Debian, Fedora) and **Windows** (10/11).
 
----
-
-## 🌟 Основні можливості
-
-- **Пряме зчитування без сторонніх блокувань**:
-  - **Linux**: нативна робота з вузлом ядра `/dev/hidrawX` без проблем із захопленням інтерфейсу libusb.
-  - **Windows**: підтримка через вбудований системний HID-стек (`hidapi`), додаткові драйвери чи WinUSB не потрібні (Plug & Play).
-  - Зчитування 64-байтових пакетів телеметрії в реальному часі (до 100 Гц).
-  - Подвійна верифікація контрольних сум (внутрішня за сумою байтів `[8:62]` та зовнішня за `[:62]`).
-- **Вимірювані та обчислювані параметри**:
-  - Напруга VBUS (В, до 4 знаків після коми).
-  - Знаковий струм IBUS (А, прямий/зворотний).
-  - Миттєва потужність (Вт).
-  - Динамічний опір навантаження (Ом, $R = V / |I|$).
-  - Сигнальні лінії швидкої зарядки: D+ та D- (В).
-  - Температурні датчики: внутрішній процесора та зовнішній NTC-зонд (°C).
-  - Апаратні лічильники пристрою K2 (Ah, Wh, час запису, uptime).
-- **Сучасний Web Dashboard (SPA)**:
-  - Темна лабораторія (Dark Theme) з великими цифровими індикаторами високої видимості.
-  - Швидкісний Canvas-графік у реальному часі з підтримкою масштабування, панорамування та вибору часового вікна (10с, 30с, 1хв, 5хв, Все).
-  - Перемикання відображення окремих каналів (V, I, P, R, D+/D-, T).
-  - Візирна лінія (Crosshair) при наведенні миші з миттєвим відображенням значень у точці.
-- **Гнучке логування та рекордер**:
-  - Запис у формат SQLite з WAL-журналом (захист від збоїв та пошкодження даних).
-  - Налаштування частоти збереження: 1 Гц, 10 Гц, 50 Гц, 100 Гц або повна швидкість.
-  - Автоматична зупинка (Auto-Stop): тригер за спадом струму або потужності нижче заданого порогу на певний час (визначення закінчення зарядки).
-- **Аналітика та інтегрування**:
-  - Кусочно-лінійне інтегрування з розділенням прямого та зворотного струму через нуль.
-  - Розрахунок ємності (mAh forward / reverse / net) та енергії (mWh forward / reverse / net).
-  - Статистична таблиця: Min, Max, Середнє зважене за часом, розмах пульсацій (Peak-to-Peak $V_{pp}$, $I_{pp}$).
-- **Сумісність та експорт**:
-  - **Офіційний CSV WITRN** (з UTF-8 BOM, сумісний з оригінальною програмою WITRN та MS Excel).
-  - **Стандартний CSV** з усіма інженерними полями.
-  - **JSON** зі зведеною статистикою та масивом вимірювань.
-  - **SQLite** файл оригінального запису.
-  - **Імпорт** раніше збережених файлів WITRN CSV для ретроспективного аналізу.
-- **Режим симулятора**:
-  - Можливість повноцінного тестування графіків та функцій навіть без фізичного підключення тестера.
+The software is built on top of open WITRN protocol reverse-engineering projects ([`lliooly/WITRN-K2-REVERSE`](https://github.com/lliooly/WITRN-K2-REVERSE), [`lliooly/witrn-k2-mac`](https://github.com/lliooly/witrn-k2-mac) and the findings of [`didim99/usbmeter-utils`](https://github.com/didim99/usbmeter-utils)).
 
 ---
 
-## 🚀 Швидкий запуск
+## 🌟 Key Features
 
-### 🎮 Головне інтерактивне меню (все в одному):
+- **Direct reads without third-party lockouts**:
+  - **Linux**: native access to the `/dev/hidrawX` kernel node without libusb interface capture issues.
+  - **Windows**: works through the built-in system HID stack (`hidapi`); no extra drivers or WinUSB needed (Plug & Play).
+  - Reads 64-byte telemetry packets in real time (up to 100 Hz).
+  - Double checksum verification (internal over bytes `[8:62]` and external over `[:62]`).
+- **Measured and computed values**:
+  - VBUS voltage (V, up to 4 decimal places).
+  - Signed bus current IBUS (A, forward/reverse).
+  - Instantaneous power (W).
+  - Dynamic load resistance (Ω, $R = V / |I|$).
+  - Fast-charging signal lines: D+ and D- (V).
+  - Temperature sensors: internal CPU sensor and external NTC probe (°C).
+  - K2 hardware counters (Ah, Wh, recording time, uptime).
+- **Modern Web Dashboard (SPA)**:
+  - Dark laboratory theme with large, highly visible digital indicators.
+  - High-speed real-time Canvas chart with zoom, pan, and time-window selection (10s, 30s, 1min, 5min, All).
+  - Toggle individual channels (V, I, P, R, D+/D-, T).
+  - Crosshair with instant value readout on hover.
+- **Flexible logging and recorder**:
+  - SQLite storage with a WAL journal (protects against crashes and data corruption).
+  - Configurable save rate: 1 Hz, 10 Hz, 50 Hz, 100 Hz, or full speed.
+  - Auto-Stop: a trigger that fires when current or power stays below a set threshold for a given duration (charge-completion detection).
+- **Analytics and integration**:
+  - Piecewise-linear integration separating forward and reverse current across zero.
+  - Capacity (mAh forward / reverse / net) and energy (mWh forward / reverse / net) computation.
+  - Statistics table: Min, Max, time-weighted average, ripple range (Peak-to-Peak $V_{pp}$, $I_{pp}$).
+- **Compatibility and export**:
+  - **Official WITRN CSV** (UTF-8 BOM, compatible with the original WITRN software and MS Excel).
+  - **Standard CSV** with all engineering fields.
+  - **JSON** with summary statistics and the measurement array.
+  - **SQLite** file of the original recording.
+  - **Import** of previously saved WITRN CSV files for retrospective analysis.
+- **Simulator mode**:
+  - Fully test graphs and features even without the physical tester connected.
+
+---
+
+## 📦 Dependency Installation
+
+### Windows (in 1 click):
+- **File Explorer / CMD:** double-click `install.bat`
+- **PowerShell:** `.\install.ps1` (or `powershell -ExecutionPolicy Bypass -File .\install.ps1`)
+
+> [!IMPORTANT]
+> If PowerShell blocks script execution (`*.ps1`) due to the execution policy, first run this in the current PowerShell window:
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+> ```
+> The policy applies only to the current process (PowerShell window) and is automatically revoked once it is closed — no system-wide changes are persisted.
+
+The script automatically:
+1. Finds a compatible Python interpreter (Python 3.10–3.13 recommended, for which prebuilt `hidapi`, `PyQt6` and `pyyaml` packages exist without needing the Microsoft Visual C++ Build Tools).
+2. Creates an isolated `.venv` virtual environment.
+3. Upgrades `pip` and installs all required modules from `requirements.txt`.
+4. Verifies integrity and successful library imports.
+
+> [!TIP]
+> The launch scripts (`run_gui.bat`, `run.bat`, `menu.bat`) will also invoke `install.bat` automatically if the `.venv` environment has not been initialized yet.
+
+### Linux:
+```bash
+python3 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install -r requirements.txt
+sudo ./setup_udev.sh
+```
+
+---
+
+## 🚀 Quick Start
+
+### 🎮 Main interactive menu (all in one):
 - **Linux:** `./menu.sh`
-- **Windows CMD:** `menu.bat` (подвійний клік)
+- **Windows CMD:** `menu.bat` (double-click)
 - **PowerShell:** `.\menu.ps1`
 
-Дозволяє в один клік обрати будь-який режим роботи без запам'ятовування параметрів.
+Lets you pick any operating mode in a single click without memorizing parameters.
 
 ---
 
-### 📂 Готові скрипти під різні сценарії:
+### 📂 Ready-made scripts for different scenarios:
 
-| Сценарій запуску | Linux | Windows (CMD / Explorer) | Windows (PowerShell) | Опис |
+| Launch scenario | Linux | Windows (CMD / Explorer) | Windows (PowerShell) | Description |
 |---|---|---|---|---|
-| **Веб-інтерфейс (SPA)** | `./run.sh` | `run.bat` | `.\run.ps1` | Запуск сучасного дашборду на `http://127.0.0.1:8000` |
-| **Десктопний GUI** | `./run_gui.sh` | `run_gui.bat` | `.\run_gui.ps1` | Нативний додаток PyQt6 з високошвидкісними графіками |
-| **Головне меню** | `./menu.sh` | `menu.bat` | `.\menu.ps1` | Інтерактивне меню з усіма режимами |
-| **Термінальний TUI** | `./run_tui.sh` | `run_tui.bat` | — | Повноекранний термінальний дашборд зі sparkline-графіками |
-| **TUI Симулятор** | `./run_tui_sim.sh` | `run_tui_sim.bat` | — | TUI-дашборд у режимі симулятора (без фізичного тестера) |
-| **Живий монітор** | `./run_live.sh` | `run_live.bat` | — | Легкий однорядковий монітор показників у реальному часі |
-| **Тест заряджання** | `./record_charge.sh` | `record_charge.bat` | — | Автозупинка при закінченні зарядки (<50 мА) + експорт у WITRN CSV |
-| **Швидкісний запис** | `./record_100hz.sh` | `record_100hz.bat` | — | Запис на максимальній частоті 100 Гц для аналізу пульсацій |
+| **Install dependencies** | — | `install.bat` | `.\install.ps1` | Automatic setup of `.venv` and all libraries |
+| **Web interface (SPA)** | `./run.sh` | `run.bat` | `.\run.ps1` | Launch the modern dashboard at `http://127.0.0.1:8000` |
+| **Desktop GUI** | `./run_gui.sh` | `run_gui.bat` | `.\run_gui.ps1` | Native PyQt6 app with high-speed graphs |
+| **Main menu** | `./menu.sh` | `menu.bat` | `.\menu.ps1` | Interactive menu with all modes |
+| **Terminal TUI** | `./run_tui.sh` | `run_tui.bat` | — | Full-screen terminal dashboard with sparkline graphs |
+| **TUI Simulator** | `./run_tui_sim.sh` | `run_tui_sim.bat` | — | TUI dashboard in simulator mode (no physical tester) |
+| **Live monitor** | `./run_live.sh` | `run_live.bat` | — | Lightweight one-line monitor of live values |
+| **Charge test** | `./record_charge.sh` | `record_charge.bat` | — | Auto-stop when charging finishes (<50 mA) + WITRN CSV export |
+| **High-speed recording** | `./record_100hz.sh` | `record_100hz.bat` | — | Recording at the maximum 100 Hz rate for ripple analysis |
 
 > [!NOTE]
-> На Windows сторонні USB-драйвери (Zadig / WinUSB) **не потрібні** — K2 працює як стандартний USB HID пристрій.
-> Перед запуском переконайтеся, що офіційну програму WITRN закрито (інакше вона блокує доступ до пристрою).
+> On Windows, third-party USB drivers (Zadig / WinUSB) are **not required** — K2 works as a standard USB HID device.
+> Before launching, make sure the official WITRN program is closed (otherwise it blocks access to the device).
 
 ---
 
-## 🔒 Налаштування прав доступу в Linux (udev)
+## 🔒 Access Permissions Setup in Linux (udev)
 
-У Linux пристрої `hidraw` за замовчуванням доступні лише суперкористувачу `root`. Щоб користуватися додатком без `sudo`:
+In Linux, `hidraw` devices are accessible only to `root` by default. To use the application without `sudo`:
 
-### Постійне налаштування (рекомендовано):
+### Permanent setup (recommended):
 ```bash
 sudo ./setup_udev.sh
 ```
-Це скопіює правило `99-witrn-k2.rules` у `/etc/udev/rules.d/` та перезавантажить підсистему udev.
+This copies the `99-witrn-k2.rules` rule into `/etc/udev/rules.d/` and reloads the udev subsystem.
 
-### Або одноразовий швидкий доступ:
+### Or a quick one-time access:
 ```bash
 sudo chmod 666 /dev/hidraw*
 ```
 
 ---
 
-## 💻 Консольний інтерфейс (`witrn-cli`)
+## 💻 Console Interface (`witrn-cli`)
 
-Утиліта підтримує всі основні операції через термінал:
+The utility supports all core operations from the terminal:
 
-### Діагностика підключення:
+> [!NOTE]
+> The commands below use the Linux syntax (`.venv/bin/python`).
+> On **Windows**, use `.venv\Scripts\python.exe` or the corresponding one-click `.bat` / `.ps1` scripts.
+
+### Connection diagnostics:
 ```bash
 .venv/bin/python -m witrn_k2.cli info
 ```
 
-### Живий термінальний монітор:
+### Live terminal monitor:
 ```bash
 .venv/bin/python -m witrn_k2.cli live
 ```
 
-### Нативний GUI-додаток (PyQt6):
+### Native GUI application (PyQt6):
 ```bash
-# Запуск графічного інтерфейсу (темна лабораторна тема, графіки в реальному часі):
+# Launch the graphical interface (dark laboratory theme, real-time graphs):
 .venv/bin/python -m witrn_k2.cli gui
 ```
-**Можливості GUI:**
-- Реал-тайм графіки V / I / P з pyqtgraph (зум/панорама із точною синхронізацією часу, antialias)
-- Великі метрики: V, I, P, Ω, T, Ah
-- **Завантаження записів** (SQLite та CSV) для ретроспективного аналізу
-- **Експорт**: WITRN CSV, стандартний CSV, JSON, **векторні SVG-графіки** (один файл, усі три плоти)
-- **Курсор (crosshair)** із миттєвим показом значень у точці
-- **Ковзне середнє** (налаштовуване вікно) як overlay на графіках
-- **Детекція піків** з регульованою чутливістю
-- **Порівняння сесій**: завантаження референсної сесії як dotted-overlay
-- **Генерація звіту**: фази зарядки, топ піків, Δ з референсом, інтегральні показники
-- **Табличний перегляд** даних (до 2000 рядків)
-- Запис із частотами 1/10/50/100 Гц та автозупинкою
+**GUI capabilities:**
+- Real-time V / I / P graphs with pyqtgraph (zoom/pan with precise time synchronization, antialias)
+- Large metrics: V, I, P, Ω, T, Ah
+- **Load recordings** (SQLite and CSV) for retrospective analysis
+- **Export**: WITRN CSV, standard CSV, JSON, **vector SVG graphs** (single file, all three plots)
+- **Crosshair** with instant value readout at any point
+- **Moving average** (configurable window) as an overlay on the graphs
+- **Peak detection** with adjustable sensitivity
+- **Session comparison**: load a reference session as a dotted overlay
+- **Report generation**: charging phases, top peaks, Δ vs. reference, integral metrics
+- **Table view** of the data (up to 2000 rows)
+- Recording at 1/10/50/100 Hz rates with auto-stop
 
-**Гарячі клавіші GUI:**
+**GUI hotkeys:**
 
-| Клавіша | Дія |
+| Key | Action |
 |---|---|
-| `F5` | Підключити |
-| `Esc` | Відключити |
-| `F9` | Почати/зупинити запис |
-| `Ctrl+O` | Завантажити запис (SQLite) |
-| `Ctrl+Shift+O` | Завантажити CSV |
-| `Ctrl+S` | Експорт WITRN CSV |
-| `Ctrl+Shift+S` | Експорт стандартний CSV |
-| `Ctrl+J` | Експорт JSON |
-| `Ctrl+Shift+V` | Експорт графіків у векторний SVG |
-| `Ctrl+R` | Звіт аналізу |
-| `C` / `M` / `P` | Курсор / ковзне середнє / піки |
-| `Ctrl+0` | Скинути масштаб |
-| `Ctrl+Delete` | Очистити живі дані |
-| `Ctrl+Shift+R` | Референсна сесія |
-| `F1` | Довідка по клавішах |
-| `Ctrl+Q` | Вихід |
+| `F5` | Connect |
+| `Esc` | Disconnect |
+| `F9` | Start/stop recording |
+| `Ctrl+O` | Load recording (SQLite) |
+| `Ctrl+Shift+O` | Load CSV |
+| `Ctrl+S` | Export WITRN CSV |
+| `Ctrl+Shift+S` | Export standard CSV |
+| `Ctrl+J` | Export JSON |
+| `Ctrl+Shift+V` | Export graphs as vector SVG |
+| `Ctrl+R` | Analysis report |
+| `C` / `M` / `P` | Cursor / moving average / peaks |
+| `Ctrl+0` | Reset zoom |
+| `Ctrl+Delete` | Clear live data |
+| `Ctrl+Shift+R` | Reference session |
+| `F1` | Keyboard help |
+| `Ctrl+Q` | Quit |
 
-### Повноекранний термінальний дашборд (TUI):
+### Full-screen terminal dashboard (TUI):
 ```bash
-# Дашборд із sparkline-графіками у реальному часі:
+# Dashboard with real-time sparkline graphs:
 .venv/bin/python -m witrn_k2.cli dash --simulator
 
-# Дашборд із паралельним записом у SQLite:
+# Dashboard with parallel recording to SQLite:
 .venv/bin/python -m witrn_k2.cli dash --record -r 10 -o recordings/cap.sqlite
 ```
 
-### Запис даних у файл (Headless logger):
+### Data logging to file (Headless logger):
 ```bash
-# Запис протягом 60 секунд на частоті 10 Гц з експортом у CSV:
+# Record for 60 seconds at 10 Hz with CSV export:
 .venv/bin/python -m witrn_k2.cli record -d 60 -r 10 --format witrn_csv -o recordings/test.sqlite
 
-# Запис з автоматичною зупинкою, коли струм впаде нижче 50 мА протягом 10 с:
+# Record with auto-stop when the current drops below 50 mA for 10 s:
 .venv/bin/python -m witrn_k2.cli record --auto-stop --threshold 0.05 --trigger-duration 10
 ```
 
-### Аналіз збереженої сесії (SQLite або CSV):
+### Analyze a saved session (SQLite or CSV):
 ```bash
 .venv/bin/python -m witrn_k2.cli analyze recordings/test.sqlite
 ```
 
 ---
 
-## 📁 Структура проекту
+## 📁 Project Structure
 
 ```
-10_witrn_k2/
-├── 99-witrn-k2.rules         # Правила udev для безпарольного доступу
-├── setup_udev.sh             # Скрипт встановлення правил udev
-├── run.sh                    # Однокліковий скрипт запуску веб-сервера
-├── requirements.txt          # Мінімальний набір залежностей Python
+custom_soft_for_official_fw/
+├── 99-witrn-k2.rules         # udev rules for passwordless access in Linux
+├── setup_udev.sh             # udev rules installation script (Linux)
+├── install.bat               # Dependency installer for Windows (CMD / Explorer)
+├── install.ps1               # Dependency installer for Windows (PowerShell)
+├── run.bat                   # Launch the web interface (Windows CMD)
+├── run.ps1                   # Launch the web interface (Windows PowerShell)
+├── run.sh                    # Launch the web interface (Linux)
+├── run_gui.bat               # Launch the desktop PyQt6 GUI (Windows CMD)
+├── run_gui.ps1               # Launch the desktop PyQt6 GUI (Windows PowerShell)
+├── run_gui.sh                # Launch the desktop PyQt6 GUI (Linux)
+├── menu.bat                  # Main menu (Windows CMD)
+├── menu.ps1                  # Main menu (Windows PowerShell)
+├── menu.sh                   # Main menu (Linux)
+├── requirements.txt          # Minimal set of Python dependencies
 ├── witrn_k2/
 │   ├── core/
-│   │   ├── protocol.py       # 64-байтний фрейм, валідація, подвійна контрольна сума
-│   │   ├── telemetry.py      # Декодування пакетів 0x1A, нормалізація, Sampler
-│   │   ├── transport.py      # Нативний Linux hidraw, hidapi, симулятор K2
-│   │   ├── recorder.py       # SQLite WAL рекордер, сегменти, тригери автозупинки
-│   │   ├── analytics.py      # Кусочно-лінійні інтеграли ємності/енергії, статистика
-│   │   └── exporter.py       # Експорт/імпорт офіційних CSV/SQLite, стандартних CSV, JSON
+│   │   ├── protocol.py       # 64-byte frame, validation, double checksum
+│   │   ├── telemetry.py      # 0x1A packet decoding, normalization, Sampler
+│   │   ├── transport.py      # Native Linux hidraw, hidapi, K2 simulator
+│   │   ├── recorder.py       # SQLite WAL recorder, segments, auto-stop triggers
+│   │   ├── analytics.py      # Piecewise capacity/energy integrals, statistics
+│   │   └── exporter.py       # Export/import of official CSV/SQLite, standard CSV, JSON
 │   ├── web/
-│   │   ├── app.py            # FastAPI сервер, REST API, WebSocket стрімер телеметрії
+│   │   ├── app.py            # FastAPI server, REST API, telemetry WebSocket streamer
 │   │   └── static/
-│   │       ├── index.html    # Інтерактивна веб-панель приладів (SPA)
-│   │       ├── style.css     # Лабораторна темна тема оформлення
-│   │       └── app.js        # Клієнтський рушій графіків на Canvas та WebSocket
-│   ├── cli.py                # Консольна утиліта witrn-cli
-│   ├── tui.py                # Повноекранний термінальний дашборд (rich TUI)
-│   ├── gui.py                # Нативний GUI-додаток (PyQt6 + pyqtgraph)
-│   └── svgfix.py             # Сумісність SVG-експорту pyqtgraph із Qt 6.x
-├── tests/                    # Набір автоматичних тестів
+│   │       ├── index.html    # Interactive instrument panel (SPA)
+│   │       ├── style.css     # Dark laboratory theme styling
+│   │       └── app.js        # Canvas chart engine and WebSocket client
+│   ├── cli.py                # witrn-cli console utility
+│   ├── tui.py                # Full-screen terminal dashboard (rich TUI)
+│   ├── gui.py                # Native GUI application (PyQt6 + pyqtgraph)
+│   └── svgfix.py             # SVG export compatibility of pyqtgraph with Qt 6.x
+├── tests/                    # Automated test suite
 │   ├── test_protocol.py
 │   ├── test_telemetry.py
 │   ├── test_recorder.py
 │   └── test_analytics.py
-└── recordings/               # Каталог для збереження логів та баз даних SQLite
+└── recordings/               # Directory for logs and SQLite databases
 ```
 
 ---
 
-## 🧪 Запуск тестів
+## 🧪 Running Tests
 
-Для запуску всіх юніт-тестів:
+To run all unit tests:
 ```bash
 .venv/bin/python -m unittest discover -s tests
 ```
